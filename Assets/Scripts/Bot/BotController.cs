@@ -59,104 +59,37 @@ public class BotController : MonoBehaviour
          *   |-
          *   
          */
-        if (_state._attackState == AttackState.Atatck) { return; }
-        //近くのPlayerオブジェクトがない場合探査
-        if(_nearPlayer == null)
+        switch(_state._botState)
         {
-            NearPlayer();
-            return;
-        }
-        Chase(_nearPlayer.transform.position);
-
-        if (Dist(_nearPlayer.transform.position) <= 0.4f)
-        {
-            Debug.Log("Stop");
-        }
-
-
-
-       /* if (wasAttack)
-        {
-            if (!hasMove)
-            {
-                moveTarget = new Vector3(Random.Range(-8, 8), 0.5f, Random.Range(-8, 8));
-                hasMove = true;
-            }
-            Chase(moveTarget);
-            var dist = Vector3.Distance(transform.position, moveTarget);
-            if (dist < 2f)
-            {
-                hasMove = false;
-                nearPlayer = null;
-                return;
-            }
-        }
-        if (CheckObj() && !isRota)
-        {
-            Debug.Log("近いPlayer");
-            isRota = true;
-            //0->-1,1->1になる
-            rota = Random.Range(0, 2) == 0 ? -1 : 1;
-            angle = 0f;
-        }
-        if (isRota)
-        {
-            OnMove(new Vector2(rota, 0));
-            angle += move.GetRotaSpeed * Time.deltaTime;
-
-            if(angle >= 90)
-            {
-                isRota = false;
-                rota = 0f;
+            case BotState.None:
+                //移動停止
                 OnMove(Vector2.zero);
-            }
-            return;
-        }
-        //敵を探す
-        if (nearPlayer == null)
-        {
-            NearPlayer();
-            return;
-        }
-        //ターゲットがいる
-        else
-        {
-            Chase(nearPlayer.transform.position);
-
-            var dist = Vector3.Distance(transform.position, nearPlayer.transform.position);
-            if (dist < 7f)
-            {
-                atack.Attack(AttackState.Charge);
-                var dir = nearPlayer.transform.position - transform.position;
-                dir.y = 0;
-                var localDir = transform.InverseTransformDirection(dir.normalized);
-                if (sensor.IsHit)
+                if(_inputVer == Vector2.zero)
                 {
-                    atack.Attack(AttackState.Atatck);
-                    previousPlayer = nearPlayer;
-                    nearPlayer = null;
-                    //wasAttck = true;
-                    return;
-                }
-                if (dist < 4f)
-                {
-                    // 相手の方向を向く
-                    OnMove(new Vector2(localDir.x, 0));
+                    _state.SetBotState(BotState.Search);
+                    Debug.Log("None");
 
-                    // 相手の方向誤差0.1以内なら攻撃
-                    if (Mathf.Abs(localDir.x) < 0.1f)
-                    {
-                        atack.Attack(AttackState.Atatck);
-                        
-                        previousPlayer = nearPlayer;
-                        nearPlayer = null;
-                        //wasAttack = true;
-                    }
                 }
-            }
-        }*/
-
-       
+                break;
+            case BotState.Search:
+                SearchPlayer();
+                Debug.Log("Search");
+                break;
+            case BotState.Chase:
+                Chase(_nearPlayer.transform.position);
+                Debug.Log("Chase");
+                break;
+            case BotState.Charge:
+                Charge();
+                Debug.Log("Charge");
+                break;
+            case BotState.Attack:
+                break;
+            case BotState.Cooldown:
+                break;
+            case BotState.Dead:
+                break;
+        }  
     }
 
     /// <summary>
@@ -179,7 +112,7 @@ public class BotController : MonoBehaviour
     /// <remarks>自身および previousPlayer を除外し、GameManager.Instance.playerList の各プレイヤーとの距離を Vector3.Distance
     /// で比較する。最短距離が見つかれば nearPlayer に割り当て、curentNearDistance を更新する。処理開始時に curentNearDistance は Mathf.Infinity
     /// で初期化される。</remarks>
-    void NearPlayer()
+    void SearchPlayer()
     {
         //初期化
         _curentNearDistance = Mathf.Infinity;
@@ -210,6 +143,15 @@ public class BotController : MonoBehaviour
                 _nearPlayer = p;
             }
         }
+        if(_nearPlayer != null)
+        {
+            _state.SetBotState(BotState.Chase);
+        }
+        else
+        {
+            _state.SetBotState(BotState.None);
+            return;
+        }
     }
 
     /// <summary>
@@ -220,6 +162,13 @@ public class BotController : MonoBehaviour
         var dir = targetPosition - transform.position;
         dir.y = 0f;
 
+        if (Dist(targetPosition) <= 6f)
+        {
+            OnMove(Vector2.zero);
+            _state.SetBotState(BotState.Charge);
+            return;
+        }
+
         //相手までの角度計算
         float angle = Vector3.SignedAngle(transform.forward,
                                           dir.normalized, 
@@ -228,8 +177,28 @@ public class BotController : MonoBehaviour
         if(Mathf.Abs(angle) > 5f){
             OnMove(new Vector2(Mathf.Sign(angle), 0f));
         }
-        else{
+        else
+        {
             OnMove(new Vector2(0, 1));
+        }
+    }
+
+    void Charge()
+    {
+        if(_nearPlayer == null) { 
+            _state.SetBotState(BotState.Search);
+            return; 
+        }
+        float distance = Dist(_nearPlayer.transform.position);
+        if (distance > 6f)
+        {
+            _state.SetBotState(BotState.Chase);
+            return;
+        }
+        if (distance <= 3f)
+        {
+            OnMove(Vector2.zero);
+            _state.SetBotState(BotState.Attack);
         }
     }
 
@@ -237,7 +206,7 @@ public class BotController : MonoBehaviour
     {
         var dir = targetPosition - transform.position;
         dir.y = 0f;
-        return dir.sqrMagnitude;
+        return dir.magnitude;
     }
 
     /// <summary>

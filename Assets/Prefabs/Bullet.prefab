@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 687facef4432f734f929bbb50660edd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletController
-  exprosionPrefab: {fileID: 19874418, guid: 6bc6d0dd8b8428e4ca316513f2cf13c6, type: 3}
-  hitLayer:
+  _exprosionPrefab: {fileID: 19874418, guid: 6bc6d0dd8b8428e4ca316513f2cf13c6, type: 3}
+  _hitLayer:
     serializedVersion: 2
     m_Bits: 320
 --- !u!135 &6290028461742700630

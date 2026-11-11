@@ -71,6 +71,7 @@ public class AtackController : MonoBehaviour
         {
             if (_stateManager._attackState == AttackState.Cooldown || _stateManager._attackState == AttackState.Charge) { return; }
             _stateManager.SetAttackState(state);
+            _stateManager.SetBotState(BotState.Charge); 
         }
         //攻撃開始
         if (state == AttackState.Atatck && _curentBullet == null)
@@ -80,6 +81,7 @@ public class AtackController : MonoBehaviour
             if (_stateManager._attackState == AttackState.Charge)
             {
                 _stateManager.SetAttackState(state);
+                _stateManager.SetBotState(BotState.Attack);
                 //attackPowerステートがStrongならstrongPower,それ以外ならweakPower
                 _curentPower = _stateManager._attackPower == AtackPower.Strong ? _strongPower : _weakPower;
                 if(_stateManager._attackPower == AtackPower.Strong)
@@ -114,8 +116,10 @@ public class AtackController : MonoBehaviour
     IEnumerator CooldownCount()
     {
         _stateManager.SetAttackState(AttackState.Cooldown);
+        _stateManager.SetBotState(BotState.Cooldown);
         yield return new WaitForSeconds(_cooldown);
         _stateManager.SetAttackState(AttackState.None);
+        _stateManager.SetBotState(BotState.None);
     }
 }
 

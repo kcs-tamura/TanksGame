@@ -40,6 +40,17 @@ public enum State
     Rigid      //硬直中
 }
 
+public enum BotState
+{
+    None,
+    Search,
+    Chase,
+    Charge,
+    Attack,
+    Cooldown,
+    Dead,
+}
+
 public class StateManager : MonoBehaviour
 {
 
@@ -47,6 +58,8 @@ public class StateManager : MonoBehaviour
     public AttackState _attackState { get; private set; } = AttackState.None;
     public AtackPower _attackPower { get;private set; }   = AtackPower.None;
     public State _state { get; private set; } = State.None;
+
+    public BotState _botState { get; private set; } = BotState.None;
 
     /// <summary>
     /// ステート更新
@@ -67,5 +80,10 @@ public class StateManager : MonoBehaviour
     public void SetState(State State)
     {
         _state = State;
+    }
+
+    public void SetBotState(BotState state)
+    {
+        _botState = state;
     }
 }
