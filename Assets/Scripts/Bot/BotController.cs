@@ -80,7 +80,7 @@ public class BotController : MonoBehaviour
                 Debug.Log("Chase");
                 break;
             case BotState.Charge:
-                Charge();
+                Charge(_nearPlayer.transform.position);
                 Debug.Log("Charge");
                 break;
             case BotState.Attack:
@@ -134,6 +134,7 @@ public class BotController : MonoBehaviour
 
             //2点間の距離計算
             var dist = p.transform.position - myPos;
+            //大小判別二乗の距離が出る
             var sqrDist = dist.sqrMagnitude;
 
             //curentNearDistanceより小さい場合登録
@@ -159,10 +160,7 @@ public class BotController : MonoBehaviour
     /// </summary>
     void Chase(Vector3 targetPosition)
     {
-        var dir = targetPosition - transform.position;
-        dir.y = 0f;
-
-        if (Dist(targetPosition) <= 6f)
+        if (Distance(targetPosition) <= 6f)
         {
             OnMove(Vector2.zero);
             _state.SetBotState(BotState.Charge);
@@ -171,42 +169,74 @@ public class BotController : MonoBehaviour
 
         //相手までの角度計算
         float angle = Vector3.SignedAngle(transform.forward,
-                                          dir.normalized, 
-                                          Vector3.up );
+                                          Direction(targetPosition), 
+                                          Vector3.up);
 
         if(Mathf.Abs(angle) > 5f){
+            //回転
             OnMove(new Vector2(Mathf.Sign(angle), 0f));
         }
         else
         {
+            //正面移動
             OnMove(new Vector2(0, 1));
         }
     }
 
-    void Charge()
+    void Charge(Vector3 targetPosition)
     {
-        if(_nearPlayer == null) { 
+        if(_nearPlayer == null) {
+            _atack.Attack(AttackState.Charge);
             _state.SetBotState(BotState.Search);
             return; 
         }
-        float distance = Dist(_nearPlayer.transform.position);
-        if (distance > 6f)
-        {
-            _state.SetBotState(BotState.Chase);
-            return;
-        }
-        if (distance <= 3f)
+
+        _atack.Attack(AttackState.Charge);
+        Chase(targetPosition);
+
+        if (Distance(targetPosition) <= 3f)
         {
             OnMove(Vector2.zero);
             _state.SetBotState(BotState.Attack);
         }
     }
 
-    float Dist(Vector3 targetPosition)
+    void Attack(Vector3 targetPosition)
+    {
+        if(_nearPlayer == null)
+        {
+            _state.SetBotState(BotState.Search);
+            return;
+        }
+
+        _atack.Attack(AttackState.Atatck);
+
+        
+    }
+
+    /// <summary>
+    /// 二点間の距離
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <returns></returns>
+    float Distance(Vector3 targetPosition)
+    {
+        var dist = targetPosition - transform.position;
+        dist.y = 0f;
+        return dist.magnitude;
+    }
+
+    /// <summary>
+    /// ターゲット方向(正規化)
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <returns></returns>
+    Vector3 Direction(Vector3 targetPosition)
     {
         var dir = targetPosition - transform.position;
-        dir.y = 0f;
-        return dir.magnitude;
+        dir.y = 0;
+        dir.Normalize();
+        return dir; 
     }
 
     /// <summary>

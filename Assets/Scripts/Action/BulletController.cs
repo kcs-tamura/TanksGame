@@ -2,12 +2,22 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
+public enum Reflection
+{
+    None,
+    Zero,
+    One,
+}
+
 public class BulletController : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _exprosionPrefab;
-    private float _height = 2f;
-    private float _duration = 1f;
+
+    private float speed = 5f;
     private float _angle = 0;
+
+    private Reflection _reflection = Reflection.None;
+    
     public GameObject _Owner { get; private set; }
 
     [SerializeField] private LayerMask _hitLayer;
@@ -20,19 +30,26 @@ public class BulletController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
     }
 
-    private void Update()
+   private void FixedUpdate()
     {
-        if (transform.position.y < _height)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(30, _angle, 0), Time.deltaTime * 10f);
-        }
+        if(_reflection == Reflection.None) { return; }
+
+        var move = transform.forward * speed * Time.fixedDeltaTime;
+        _rb.MovePosition(transform.position + move);
     }
 
-    public void Shot(Vector3 startPos, Vector3 endPos)
+    public void Shot(Vector3 startPos, AtackPower state)
     {
         transform.position = startPos;
+        if(state == AtackPower.Strong)
+        {
+            _reflection = Reflection.One;
+        }
+        else
+        {
+            _reflection = Reflection.Zero;
+        }
 
-        transform.DOJump(endPos, _height, 1, _duration).SetEase(Ease.Linear);
     }
 
     /// <summary>

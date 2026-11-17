@@ -25,7 +25,6 @@ public enum AttackState
 /// </summary>
 public enum AtackPower
 {
-    None,   //なし
     Weak,   //弱攻撃
     Strong, //強攻撃
 }
@@ -35,8 +34,6 @@ public enum AtackPower
 public enum State
 {
     None,      //なし
-    KnockBack, //ノックバック中
-    Hit,       //攻撃ヒット中
     Rigid      //硬直中
 }
 
@@ -56,7 +53,7 @@ public class StateManager : MonoBehaviour
 
     public MoveState _moveState {  get; private set; } = MoveState.Idel;
     public AttackState _attackState { get; private set; } = AttackState.None;
-    public AtackPower _attackPower { get;private set; }   = AtackPower.None;
+    public AtackPower _attackPower { get;private set; }   = AtackPower.Weak;
     public State _state { get; private set; } = State.None;
 
     public BotState _botState { get; private set; } = BotState.None;

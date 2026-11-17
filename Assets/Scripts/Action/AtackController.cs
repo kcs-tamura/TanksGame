@@ -8,8 +8,6 @@ public class AtackController : MonoBehaviour
 {
     [Header("攻撃設定")]
     [SerializeField] private GameObject _bullet;//弾Prefab
-    private Vector3 _curentAttackPos;            //現在の攻撃位置
-
     private float _cooldown = 1.0f;          //攻撃クールダウン
     //-----チャージ-------
     private const float _chargeMax = 1.0f;   //Maxチャージ量
@@ -17,14 +15,10 @@ public class AtackController : MonoBehaviour
   
     private GameObject _curentBullet;
 
-    /*    //-----硬直---------
-        private float StrongRecoveryTime = 1.0f;//硬直時間
-        private float curentRecoveryTime;       //現在の硬直時間*/
+    //-----硬直---------
+    private float _recoveryTime = 0.5f;//硬直時間
 
-    [Header("ノックバック,無敵設定")]
-    private float _weakPower = 10.0f;    //弱ノックバック力
-    private float _strongPower = 20.0f;  //強ノッコバック力
-    private float _curentPower = 0.0f;   //現在のコックバック力
+    private AtackPower _curentPower = default;   //現在の攻撃
 
 
     Rigidbody _rb;
@@ -46,7 +40,6 @@ public class AtackController : MonoBehaviour
     public void SetCharge(float value, Vector3 attackPos = default(Vector3))
     {
         _curentCharge = Mathf.Clamp01(value);
-        _curentAttackPos = attackPos;
     }
 
     private void Update()
@@ -56,7 +49,6 @@ public class AtackController : MonoBehaviour
         {
             _stateManager.SetAttackPower(AtackPower.Strong);
         }
-
     }
 
     /// <summary>
@@ -83,30 +75,28 @@ public class AtackController : MonoBehaviour
                 _stateManager.SetAttackState(state);
                 _stateManager.SetBotState(BotState.Attack);
                 //attackPowerステートがStrongならstrongPower,それ以外ならweakPower
-                _curentPower = _stateManager._attackPower == AtackPower.Strong ? _strongPower : _weakPower;
-                if(_stateManager._attackPower == AtackPower.Strong)
-                {
-                    _curentPower = _strongPower;
-                }
+                _curentPower = _stateManager._attackPower;
+
                 var y = transform.eulerAngles.y;
-                _curentBullet = Instantiate(_bullet,new Vector3(transform.position.x,1f,transform.position.z + 1f),Quaternion.Euler(-20,y,0));
-                StartCoroutine(CooldownCount());
+                _curentBullet = Instantiate(_bullet,new Vector3(transform.position.x,0.5f,transform.position.z + 1f),Quaternion.Euler(0,y,0));
+                StartCoroutine(RigidCount());
                 var p = _curentBullet.GetComponent<BulletController>();
                 if(p != null)
                 {
                     p.SetAttackController(this,y);
-                    p.Shot(_curentBullet.transform.position, _curentAttackPos);
+                    p.Shot(_curentBullet.transform.position, _curentPower);
                     p.SetOwner(gameObject);
                 }
-
             }
         }
     }
 
     public void BulletDestory()
     {
+        _stateManager.SetAttackState(AttackState.Atatck);
+        _stateManager.SetBotState(BotState.Attack);
         _curentBullet = null;
-        //StartCoroutine(CooldownCount());
+        StartCoroutine(CooldownCount());
     }
 
     /// <summary>
@@ -120,6 +110,13 @@ public class AtackController : MonoBehaviour
         yield return new WaitForSeconds(_cooldown);
         _stateManager.SetAttackState(AttackState.None);
         _stateManager.SetBotState(BotState.None);
+    }
+
+    IEnumerator RigidCount()
+    {
+        _stateManager.SetState(State.Rigid);
+        yield return new WaitForSeconds(_recoveryTime);
+        _stateManager.SetState(State.None);
     }
 }
 
