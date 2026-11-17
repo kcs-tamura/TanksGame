@@ -37,18 +37,14 @@ public class AtackController : MonoBehaviour
     /// チャージゲージの同期
     /// </summary>
     /// <param name="value"></param>
-    public void SetCharge(float value, Vector3 attackPos = default(Vector3))
+    public void SetCharge(float value)
     {
         _curentCharge = Mathf.Clamp01(value);
     }
 
     private void Update()
     {
-        //maxなら強攻撃
-        if (_curentCharge >= _chargeMax)
-        {
-            _stateManager.SetAttackPower(AtackPower.Strong);
-        }
+
     }
 
     /// <summary>
@@ -72,6 +68,15 @@ public class AtackController : MonoBehaviour
 
             if (_stateManager._attackState == AttackState.Charge)
             {
+                //maxなら強攻撃
+                if (_curentCharge >= _chargeMax)
+                {
+                    _stateManager.SetAttackPower(AtackPower.Strong);
+                }
+                else
+                {
+                    _stateManager.SetAttackPower(AtackPower.Weak);
+                }
                 _stateManager.SetAttackState(state);
                 _stateManager.SetBotState(BotState.Attack);
                 //attackPowerステートがStrongならstrongPower,それ以外ならweakPower
