@@ -1,5 +1,7 @@
 ﻿using Mono.Cecil.Cil;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class BotController : MonoBehaviour
 {
@@ -13,6 +15,7 @@ public class BotController : MonoBehaviour
     public Vector2 InputVer => _inputVer;  //入力値を参照
 
     [Header("攻撃設定")]
+    [SerializeField] private float _bulletSpeed = 5f;
     private Vector3 _moveTarget;
     private bool _hasMove = false;
 
@@ -67,23 +70,16 @@ public class BotController : MonoBehaviour
                 if(_inputVer == Vector2.zero)
                 {
                     _state.SetBotState(BotState.Search);
-                    Debug.Log("None");
-
                 }
                 break;
             case BotState.Search:
                 SearchPlayer();
-                Debug.Log("Search");
                 break;
             case BotState.Chase:
                 Chase(_nearPlayer.transform.position);
-                Debug.Log("Chase");
-                break;
-            case BotState.Charge:
-                Charge(_nearPlayer.transform.position);
-                Debug.Log("Charge");
                 break;
             case BotState.Attack:
+                Attack(_nearPlayer);
                 break;
             case BotState.Cooldown:
                 break;
@@ -159,20 +155,13 @@ public class BotController : MonoBehaviour
     /// 追跡処理
     /// </summary>
     void Chase(Vector3 targetPosition)
-    {
-        if (Distance(targetPosition) <= 6f)
-        {
-            OnMove(Vector2.zero);
-            _state.SetBotState(BotState.Charge);
-            return;
-        }
-
-        //相手までの角度計算
+    {        //相手までの角度計算
         float angle = Vector3.SignedAngle(transform.forward,
-                                          Direction(targetPosition), 
-                                          Vector3.up);
+                          Direction(targetPosition),
+                          Vector3.up);
 
-        if(Mathf.Abs(angle) > 5f){
+        if (Mathf.Abs(angle) > 5f)
+        {
             //回転
             OnMove(new Vector2(Mathf.Sign(angle), 0f));
         }
@@ -180,38 +169,82 @@ public class BotController : MonoBehaviour
         {
             //正面移動
             OnMove(new Vector2(0, 1));
+            if (Distance(targetPosition) <= 5f)
+            {
+                OnMove(Vector2.zero);
+                _state.SetBotState(BotState.Attack);
+                return;
+            }
         }
     }
 
-    void Charge(Vector3 targetPosition)
+    void Attack(GameObject target)
     {
-        if(_nearPlayer == null) {
-            _atack.Attack(AttackState.Charge);
-            _state.SetBotState(BotState.Search);
-            return; 
-        }
-
-        _atack.Attack(AttackState.Charge);
-        Chase(targetPosition);
-
-        if (Distance(targetPosition) <= 3f)
+        var dist = Distance(target.transform.position);
+        if(dist >= 5f)
         {
             OnMove(Vector2.zero);
-            _state.SetBotState(BotState.Attack);
-        }
-    }
-
-    void Attack(Vector3 targetPosition)
-    {
-        if(_nearPlayer == null)
-        {
-            _state.SetBotState(BotState.Search);
+            _state.SetBotState(BotState.Chase);
             return;
         }
 
-        _atack.Attack(AttackState.Atatck);
+        var targetPos = PredictPosition(target);
 
+        TargetRotate(targetPos);
+
+
+    }
+
+    /// <summary>
+    /// 相手の予測位置(予測位置 = 現在位置 + 速度 * 時間)
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    Vector3 PredictPosition(GameObject target)
+    {
+        //現在位置
+        var targetPos = target.transform.position;
+        var rb = target.GetComponent<Rigidbody>();
+        if(rb == null) { return targetPos; }
+
+        var dist = Distance(targetPos);
         
+        //到達時間 = 距離 ÷ 弾速
+        float flightTime = dist / _bulletSpeed;
+
+        var predictedPos = targetPos + rb.linearVelocity * flightTime;
+        predictedPos.y = transform.position.y;
+
+        return predictedPos;
+    }
+
+
+    /// <summary>
+    /// 回転処理
+    /// </summary>
+    /// <param name="targetPos"></param>
+    void TargetRotate(Vector3 targetPos)
+    {
+        var targetDir = Direction(targetPos);
+        if(targetPos.sqrMagnitude < 0.01f)
+        {
+            OnMove(Vector2.zero);
+            return;
+        }
+        float angle = Vector3.SignedAngle(transform.forward,
+                                  targetDir,
+                                  Vector3.up);
+
+        if (Mathf.Abs(angle) > 5f)
+        {
+            //回転(-1->左, 1->右)
+            OnMove(new Vector2(Mathf.Sign(angle), 0f));
+            return;
+        }
+        else
+        {
+            OnMove(Vector2.zero);
+        }
     }
 
     /// <summary>

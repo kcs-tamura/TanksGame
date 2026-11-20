@@ -38,15 +38,27 @@ public class PlayerInputController : MonoBehaviour
     /// 攻撃処理
     /// </summary>
     /// <param name="context"></param>
-    public void OnAtack(InputAction.CallbackContext context)
+    public void OnShot1(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
-            _atack.Attack(AttackState.Charge);
+            _atack.Attack(AttackState.Aim, AtackMode.Nomal);
         }
         if (context.canceled)
         {
-            _atack.Attack(AttackState.Atatck);
+            _atack.Attack(AttackState.Atatck, AtackMode.Nomal);
+        }
+    }
+
+    public void OnShot2(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            _atack.Attack(AttackState.Aim, AtackMode.Bounth);
+        }
+        if (context.canceled)
+        {
+            _atack.Attack(AttackState.Atatck, AtackMode.Bounth);
         }
     }
 

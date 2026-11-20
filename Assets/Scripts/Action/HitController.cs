@@ -20,17 +20,17 @@ public class HitController : MonoBehaviour
     /// 攻撃を受けたら子供オブジェクト消去
     /// </summary>
     /// <param name="other"></param>
-    private void OnTriggerEnter(Collider other)
+    private void OnCollisionEnter(Collision collision)
     {
-        if (((1 << other.gameObject.layer) & _bulletLayer) != 0)
+        if (((1 << collision.gameObject.layer) & _bulletLayer) != 0)
         {
-            var b = other.gameObject.GetComponent<BulletController>();
+            var b = collision.gameObject.GetComponent<BulletController>();
             // BulletControllerがないなら無視
             if (b == null)
                 return;
-            // 自分が撃ったBulletなら無視
+/*            // 自分が撃ったBulletなら無視
             if (b._Owner == gameObject)
-                return;
+                return;*/
             foreach (Transform t in transform)
             {
                 t.gameObject.SetActive(false);

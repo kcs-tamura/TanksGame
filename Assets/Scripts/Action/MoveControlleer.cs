@@ -34,7 +34,7 @@ public class MoveControlleer : MonoBehaviour
         if (_stateManager._state == State.Rigid) { return; }
 
         //攻撃以外の時の処理
-        if (_stateManager._attackState != AttackState.Charge)
+        if (_stateManager._attackState != AttackState.Aim)
         {
             //移動処理
             Vector3 move = transform.forward * _inputVer.y * _speed * Time.fixedDeltaTime;

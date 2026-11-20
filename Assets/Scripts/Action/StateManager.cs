@@ -16,17 +16,17 @@ public enum MoveState
 public enum AttackState
 {
     None,    //なし
-    Charge,  //チャージ中
+    Aim,  //チャージ中
     Atatck,  //攻撃中
     Cooldown //クールダウン中
 }
 /// <summary>
 /// 攻撃力
 /// </summary>
-public enum AtackPower
+public enum AtackMode
 {
-    Weak,   //弱攻撃
-    Strong, //強攻撃
+    Nomal,   //弱攻撃
+    Bounth, //強攻撃
 }
 /// <summary>
 /// 状態ステート
@@ -42,7 +42,6 @@ public enum BotState
     None,
     Search,
     Chase,
-    Charge,
     Attack,
     Cooldown,
     Dead,
@@ -53,7 +52,7 @@ public class StateManager : MonoBehaviour
 
     public MoveState _moveState {  get; private set; } = MoveState.Idel;
     public AttackState _attackState { get; private set; } = AttackState.None;
-    public AtackPower _attackPower { get;private set; }   = AtackPower.Weak;
+    public AtackMode _attackPower { get;private set; }   = AtackMode.Nomal;
     public State _state { get; private set; } = State.None;
 
     public BotState _botState { get; private set; } = BotState.None;
@@ -70,7 +69,7 @@ public class StateManager : MonoBehaviour
     {
         _attackState = state;
     }
-    public void SetAttackPower(AtackPower power)
+    public void SetAttackMode(AtackMode power)
     {
         _attackPower = power;
     }

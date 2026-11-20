@@ -13,11 +13,11 @@ public class BulletController : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _exprosionPrefab;
 
-    private float speed = 5f;
+    private const float speed = 5f;
 
     private Reflection _reflection = Reflection.None;
     
-    public GameObject _Owner { get; private set; }
+    //public GameObject _Owner { get; private set; }
 
     [SerializeField] private LayerMask _hitLayer;
     [SerializeField] private LayerMask _playerHitLayer;
@@ -38,10 +38,10 @@ public class BulletController : MonoBehaviour
         _rb.MovePosition(transform.position + move);
     }
 
-    public void Shot(Vector3 startPos, AtackPower state)
+    public void Shot(Vector3 startPos, AtackMode state)
     {
         transform.position = startPos;
-        if(state == AtackPower.Strong)
+        if(state == AtackMode.Bounth)
         {
             _reflection = Reflection.One;
         }
@@ -51,24 +51,15 @@ public class BulletController : MonoBehaviour
         }
     }
 
-    void Bouns(/*Vector3 normal*/)
+    void Bouns(Vector3 normal)
     {
-        var rot = transform.rotation;
-        var curentY = rot.eulerAngles.y;
-        if (curentY == 0)
-        {
-            curentY = 180;
-        }
+        Vector3 reflectedDirection = Vector3.Reflect(transform.forward, normal).normalized;
 
-        transform.rotation = Quaternion.Euler(0, -curentY, 0f);
+        reflectedDirection.y = 0f;
 
-        /*        Vector3 reflectedDirection = Vector3.Reflect(transform.forward, normal).normalized;
-
-                reflectedDirection.y = 0f;
-
-                transform.rotation = Quaternion.LookRotation(
-                    reflectedDirection,
-                    Vector3.up);*/
+        transform.rotation = Quaternion.LookRotation(
+            reflectedDirection,
+            Vector3.up);
     }
 
     /// <summary>
@@ -81,14 +72,14 @@ public class BulletController : MonoBehaviour
         _attack = controller;
     }
 
-    /// <summary>
+/*    /// <summary>
     /// 生成者を認識
     /// </summary>
     /// <param name="owner"></param>
     public void SetOwner(GameObject owner)
     {
         _Owner = owner;
-    }
+    }*/
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -96,7 +87,7 @@ public class BulletController : MonoBehaviour
         {
             if(_reflection == Reflection.One)
             {
-                Bouns(/*collision.contacts[0].normal*/);
+                Bouns(collision.contacts[0].normal);
                 _reflection = Reflection.Zero;
                 return;
             }

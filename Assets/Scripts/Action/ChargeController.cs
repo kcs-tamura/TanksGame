@@ -23,7 +23,7 @@ public class ChargeController : MonoBehaviour
     {
         float speed = 1f / _maxChargeTime;
 
-        if (_stateManager._attackState == AttackState.Charge)
+        if (_stateManager._attackState == AttackState.Aim)
         {
             _gaugeImage.fillAmount += speed * Time.deltaTime;
         }
@@ -32,6 +32,6 @@ public class ChargeController : MonoBehaviour
             _gaugeImage.fillAmount = 0;
         }
 
-        _ac.SetCharge(_gaugeImage.fillAmount);
+        //_ac.SetCharge(_gaugeImage.fillAmount);
     }
 }
